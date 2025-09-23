@@ -1,3 +1,10 @@
+if (process.env.NODE_ENV != "production")
+{
+  // Bu if bloğunda .env dosyası içerisinde tanımlanan environments (çevre değişkenlerini) projenin "production" sürümü haricinde yakalaması için koşulladık.
+  const config = require('dotenv').config(); // .env dosyası içerisindeki environments değişkenlerin yakalanmasını sağlar.
+  console.log("ENV", config);
+}
+
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
@@ -19,6 +26,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Bu alanın Middleware olduğunu ispatlamak için kullanıldı.
 // app.use((res, req, next) => {
 //   console.log("Ben bir middleware'im");
 //   next();
