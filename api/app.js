@@ -11,9 +11,6 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-
 var app = express();
 
 // view engine setup
@@ -27,13 +24,17 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Bu alanın Middleware olduğunu ispatlamak için kullanıldı.
-// app.use((res, req, next) => {
-//   console.log("Ben bir middleware'im");
-//   next();
-// });
+app.use((res, req, next) => {
+  console.log("Ben app.js üzerinde tanımlanan bir middleware'im.");
+  next();
+});
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+// routings
+app.use('/api', require('./routes/index'));  //http://localhost:3000
+// Aşağıdaki router yapılanmaları dinamik routing kullanıldığı için yorum satırı olarak kapatıldı.
+// app.use('/users', require('.//routes/users')); //http://localhost:3000/users
+// app.use('/auditlogs', require('.//routes/auditlogs'));  //http://localhost:3000/auditlogs
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
