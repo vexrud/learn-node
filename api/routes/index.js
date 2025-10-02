@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-// const config = require("../config");  //config klasörü altındaki index dosyası içerisindeki environments tanımlamaları al (dotenv kütüphanesi kullanılmadan manuel tanımlama ve yakalama işlemi yaptık)
+const config = require("../config");  //config klasörü altındaki index dosyası içerisindeki environments tanımlamaları al (dotenv kütüphanesi kullanılmadan manuel tanımlama ve yakalama işlemi yaptık)
 
 // dinamik router yapılanması
 const fs = require("fs"); // Bu kütüphane build-in geliyor
@@ -14,5 +14,10 @@ for (let route of routes){
     // (böylelikle routes klasörü içerisinde tanımlanan .js dosyalarını dinamik olarak yönlendirme yapacaktır.)
   }
 }
+
+/* GET users listing. */
+router.get('/', function(req, res, next) {
+  res.render('index', { title: 'Batuhan', config })
+});
 
 module.exports = router; 

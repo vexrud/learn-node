@@ -1,21 +1,66 @@
 var express = require('express');
 var router = express.Router();
+const Categories = require("../db/models/Categories");
+const Response = require("../lib/Response");
+const CustomError = require("../lib/Error");
+const Enum = require("../config/Enum");
 
 const isAuthenticated = false;
+/**
+ * Create
+ * Read
+ * Update
+ * Delete
+ * CRUD Operations
+ */
 
-// simple authentication demo
-router.all("*", (req, res, next) => {
-  if (isAuthenticated){
-    next();
-  }
-  else {
-    res.json({ success: false, error: "Not authenticated."})
-  }
-})
+/**
+ * simple authentication demo (pseudo code)
+  router.all("*", (req, res, next) => {
+    if (isAuthenticated){
+      next();
+    }
+    else {
+      res.json({ success: false, error: "Not authenticated."})
+    }
+  })
+ */
 
-/* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.send({ success: true });
+/* GET categories listing. */
+router.get('/', async (req, res, next) => {
+  try {
+    let categories = await Categories.find({}); //Select sorgusu (veritabanındaki categories tablosundan verileri çekiyor)
+    
+    res.json(Response.successResponse(categories));
+  } catch (err) {
+    let errorResponse = Response.errorResponse(err);
+    res.status(errorResponse.code).json(errorResponse);
+  }
+});
+
+
+router.post("/add", async (req, res) => {
+  let body = req.body;
+  try {
+    if (!body.name)
+    {
+      throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "Name field must be filled.");
+    }
+
+    let category = new Categories({
+      name: body.name,
+      is_active: true,
+      created_by: req.user?.id //Şuan bu alan yok çünkü authentication eklenmedi.
+    });
+
+    await category.save();
+
+    res.json(Response.successResponse({ success: true }));
+
+  } catch (err) {
+    let errorResponse = Response.errorResponse(err);
+    res.status(errorResponse.code).json(errorResponse);
+  }
 });
 
 module.exports = router;
