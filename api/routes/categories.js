@@ -63,4 +63,45 @@ router.post("/add", async (req, res) => {
   }
 });
 
+router.put("/update", async(req, res) => {
+  let body = req.body;
+  try {
+    let updates = {};
+
+    if (!body._id){
+      throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "_id field must be filled.");
+    }
+    if (body.name){
+      updates.name = body.name;
+    }
+    if (typeof body.is_active === "boolean"){
+      updates.is_active = body.is_active;
+    }
+
+    updates.updated_at = new Date();
+    
+    await Categories.updateOne({ _id: body._id }, updates);
+    res.json(Response.successResponse({ success: true }));
+  } catch (err) {
+    let errorResponse = Response.errorResponse(err);
+    res.status(errorResponse.code).json(errorResponse);
+  }
+})
+
+router.delete('/delete', async(req, res) => {
+  let body = req.body;
+
+  try {
+    if (!body._id){
+      throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "_id field must be filled.");
+    }
+
+    await Categories.deleteOne({_id: body._id});
+    res.json(Response.successResponse({ success: true }));
+  } catch (err) {
+    let errorResponse = Response.errorResponse(err);
+    res.status(errorResponse.code).json(errorResponse);
+  }
+})
+
 module.exports = router;
