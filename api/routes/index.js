@@ -15,7 +15,7 @@ for (let route of routes){
   }
 }
 
-/* GET users listing. */
+
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'Batuhan', config })
 });
