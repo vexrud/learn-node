@@ -39,7 +39,7 @@ router.get('/', async (req, res, next) => {
 });
 
 
-router.post("/add", async (req, res) => {
+router.post('/add', async (req, res) => {
   let body = req.body;
   try {
     if (!body.name)
@@ -63,7 +63,7 @@ router.post("/add", async (req, res) => {
   }
 });
 
-router.put("/update", async(req, res) => {
+router.put('/update', async(req, res) => {
   let body = req.body;
   try {
     let updates = {};

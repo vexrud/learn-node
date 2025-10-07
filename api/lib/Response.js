@@ -22,6 +22,16 @@ class Response {
                 }
             }
         }
+        else if (error.message.includes("E11000"))  //Veritabanında zaten varolan bir kayıt için E11000 kodunda bir mesaj geliyordu bunu kullanıcı dostu olması adına message kısmını düzenlemek için bu şekilde koşul ekledik.
+        {
+            return {
+                code: Enum.HTTP_CODES.CONFLICT,
+                error: {
+                    message: "Alread Exists!",
+                    description: "This record already exists."
+                }
+            }            
+        }
 
         return {
             code: Enum.HTTP_CODES.INTERNAL_SERVER_ERROR,
