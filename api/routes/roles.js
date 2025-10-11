@@ -20,9 +20,10 @@ router.get('/', async (req, res, next) => {
 
 });
 
-router.post('/add', async (req, res) => {
-  let body = req.body;
+router.post('/add', async (req, res) => { 
   try {
+    let body = req.body;
+    
     if (!body.role_name)
     {
       throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "role_name field must be filled.");
