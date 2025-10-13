@@ -3,7 +3,8 @@ const mongoose = require("mongoose");
 const schema = mongoose.Schema({
     role_id: { type: mongoose.SchemaTypes.ObjectId, required: true },
     permission: { type: String, required: true },
-    created_by: { type: mongoose.SchemaTypes.ObjectId }
+    created_by: { type: mongoose.SchemaTypes.ObjectId },
+    is_active: { type: Boolean, default: true }
 },{
     versionKey: false,
     timestamps: {

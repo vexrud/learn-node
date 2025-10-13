@@ -37,7 +37,7 @@ router.post('/add', async (req, res) => {
     let role = new Roles({
       role_name: body.role_name,
       is_active: true,
-      created_by: req.user?.id
+      created_by: req.user?.id 
     });
 
     await role.save();
@@ -61,12 +61,23 @@ router.post('/add', async (req, res) => {
 });
 
 router.put('/update', async(req, res) => {
-  let body = req.body;
+
   try {
+    let body = req.body;
     let updates = {};
-    if (!body._id){
+    
+    if (!body._id)
+    {
       throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "_id field must be filled.");
     }
+
+    // let userRole = await UserRoles.findOne({ user_id: body.user_id, role_id: body._id});
+
+    // if(!userRole)
+    // {
+    //   throw new CustomError(Enum.HTTP_CODES.FORBIDDEN, "Validation Error!", "userRole not found.");
+    // }
+    
     if (body.role_name)
     {
       updates.role_name = body.role_name;
@@ -87,7 +98,7 @@ router.put('/update', async(req, res) => {
 
       if (removedPermissions.length > 0)
       {
-        await RolePrivileges.deleteOne({_id: {$in:[removedPermissions.map(x => x._id)]}}); //removedPermissions içerisindeki _id değerlerini bir kerede verip eşleşenleri silmesini söylüyoruz.
+        await RolePrivileges.deleteMany({_id: {$in:[removedPermissions.map(x => x._id)]}}); //removedPermissions içerisindeki _id değerlerini bir kerede verip eşleşenleri silmesini söylüyoruz.
       }
 
       if (newPermissions.length > 0)
@@ -95,7 +106,7 @@ router.put('/update', async(req, res) => {
         for (let i=0;i<newPermissions.length;i++)
         {
           let priv = new RolePrivileges({
-            role_id: role._id,
+            role_id: body._id,
             permission: newPermissions[i],
             created_by: req.user?.id
           });
