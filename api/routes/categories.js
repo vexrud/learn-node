@@ -4,6 +4,7 @@ const Categories = require("../db/models/Categories");
 const Response = require("../lib/Response");
 const CustomError = require("../lib/Error");
 const Enum = require("../config/Enum");
+const AuditLogs = require("../lib/AuditLogs");
 
 const isAuthenticated = false;
 /**
@@ -55,6 +56,8 @@ router.post('/add', async (req, res) => {
 
     await category.save();
 
+    AuditLogs.info(req.user?.email, "Categories", "add", category);
+
     res.json(Response.successResponse({ success: true }));
 
   } catch (err) {
@@ -81,6 +84,9 @@ router.put('/update', async(req, res) => {
     updates.updated_at = new Date();
     
     await Categories.updateOne({ _id: body._id }, updates);
+
+    AuditLogs.info(req.user?.email, "Categories", "update", { _id: body._id, ...updates });
+
     res.json(Response.successResponse({ success: true }));
   } catch (err) {
     let errorResponse = Response.errorResponse(err);
@@ -97,6 +103,9 @@ router.delete('/delete', async(req, res) => {
     }
 
     await Categories.deleteOne({_id: body._id});
+
+    AuditLogs.info(req.user?.email, "Categories", "delete", { _id: body._id });
+
     res.json(Response.successResponse({ success: true }));
   } catch (err) {
     let errorResponse = Response.errorResponse(err);

@@ -49,5 +49,15 @@ module.exports = {
     },
 
     PASSWORD_LENGTH: 8,
-    SUPER_ADMIN: "SUPER_ADMIN"
+    SUPER_ADMIN: "SUPER_ADMIN",
+
+    LOGLEVELS:
+    {
+        "INFO": "INFO",
+        "WARN": "WARN",
+        "ERROR": "ERROR",
+        "DEBUG": "DEBUG",
+        "VERBOSE": "VERBOSE",
+        "HTTP": "HTTP"
+    },
 }
