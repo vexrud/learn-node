@@ -10,6 +10,8 @@ const Roles = require('../db/models/Roles');
 const Response = require('../lib/Response');
 const Enum = require('../config/Enum');
 const CustomError = require('../lib/Error');
+const AuditLogs = require('../lib/AuditLogs');
+const logger = require("../lib/logger/LoggerClass");
 
 /* GET users listing. */
 router.get('/', async(req, res, next) => {
@@ -18,6 +20,7 @@ router.get('/', async(req, res, next) => {
 
     res.json(Response.successResponse(users));
   } catch(err) {
+    logger.info(req.user?.email, "Users", "get", err);
     let errorResponse = Response.errorResponse(err);
     res.status(errorResponse.code).json(errorResponse);
   }
@@ -68,9 +71,14 @@ router.post('/add', async(req, res) => {
         user_id: createdUser._id
       })
     }
-    res.status(Enum.HTTP_CODES.CREATED).json(Response.successResponse({ success: true }, Enum.HTTP_CODES.CREATED));
 
+    //Logging
+    AuditLogs.info(req.user?.email, "Users", "add", createdUser);
+    logger.info(req.user?.email, "Users", "add", createdUser);
+
+    res.status(Enum.HTTP_CODES.CREATED).json(Response.successResponse({ success: true }, Enum.HTTP_CODES.CREATED));
   } catch (err) {
+    logger.info(req.user?.email, "Users", "add", err);
     let errorResponse = Response.errorResponse(err);
     res.status(errorResponse.code).json(errorResponse);
   }
@@ -127,8 +135,14 @@ router.put('/update', async(req, res) => {
     }
 
     await Users.updateOne({ _id: body._id }, updates);
+
+    //Logging
+    AuditLogs.info(req.user?.email, "Users", "update", { _id: body._id, ...updates });
+    logger.info(req.user?.email, "Users", "update", { _id: body._id, ...updates });
+
     res.json(Response.successResponse({ success: true }));
   } catch (err) {
+    logger.info(req.user?.email, "Users", "update", err);
     let errorResponse = Response.errorResponse(err);
     res.status(errorResponse.code).json(errorResponse);
   }
@@ -144,8 +158,13 @@ router.delete('/delete', async(req, res) => {
 
     await UserRoles.deleteMany({ user_id: body._id });
 
+    //Logging
+    AuditLogs.info(req.user?.email, "Users", "delete", { _id: body._id });
+    logger.info(req.user?.email, "Users", "delete", { _id: body._id });
+
     res.json(Response.successResponse({ success: true }));
   } catch (err) {
+    logger.info(req.user?.email, "Users", "delete", err);
     let errorResponse = Response.errorResponse(err);
     res.status(errorResponse.code).json(errorResponse);
   }
@@ -153,6 +172,7 @@ router.delete('/delete', async(req, res) => {
 
 router.post('/register', async(req, res) => {
   try {
+    let role = await Roles.findOne({ role_name: Enum.SUPER_ADMIN });
     let users = await Users.findOne({});
     if(users)
     {
@@ -191,20 +211,27 @@ router.post('/register', async(req, res) => {
       adres: body.adres
     });
 
-    let role = await Roles.create({
-      role_name: Enum.SUPER_ADMIN,
-      is_active: true,
-      created_by: createdUser._id
-    });
+    if (!role)
+    {
+      role = await Roles.create({
+        role_name: Enum.SUPER_ADMIN,
+        is_active: true,
+        created_by: createdUser._id
+      });
+    }
 
     await UserRoles.create({
       role_id: role._id,
       user_id: createdUser._id
     });
 
+    //Logging
+    AuditLogs.info(req.user?.email, "Users", "register", createdUser);
+    logger.info(req.user?.email, "Users", "register", createdUser);
     res.status(Enum.HTTP_CODES.CREATED).json(Response.successResponse({ success: true }, Enum.HTTP_CODES.CREATED));
 
   } catch (err) {
+    logger.info(req.user?.email, "Users", "register", err);
     let errorResponse = Response.errorResponse(err);
     res.status(errorResponse.code).json(errorResponse);
   }
