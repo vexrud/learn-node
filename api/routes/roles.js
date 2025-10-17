@@ -6,6 +6,8 @@ const CustomError = require("../lib/Error");
 const Enum = require("../config/Enum");
 const role_privileges = require("../config/role_privileges");
 const RolePrivileges = require("../db/models/RolePrivileges");
+const AuditLogs = require('../lib/AuditLogs');
+const logger = require("../lib/logger/LoggerClass");
 
 /* GET roles listing. */
 router.get('/', async (req, res, next) => {
@@ -14,6 +16,7 @@ router.get('/', async (req, res, next) => {
     
     res.json(Response.successResponse(roles));
   } catch (err) {
+    logger.error(req.user?.email, "Roles", "get", err);
     let errorResponse = Response.errorResponse(err);
     res.status(errorResponse.code).json(errorResponse);
   }
@@ -52,9 +55,14 @@ router.post('/add', async (req, res) => {
 
       await priv.save();
     }
+
+    //Logging
+    AuditLogs.info(req.user?.email, "Roles", "add", role);
+    logger.info(req.user?.email, "Roles", "add", role);    
     
     res.json(Response.successResponse({ success: true }));
   } catch (err) {
+    logger.info(req.user?.email, "Roles", "add", err);
     let errorResponse = Response.errorResponse(err);
     res.status(errorResponse.code).json(errorResponse);
   }
@@ -70,13 +78,6 @@ router.put('/update', async(req, res) => {
     {
       throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "_id field must be filled.");
     }
-
-    // let userRole = await UserRoles.findOne({ user_id: body.user_id, role_id: body._id});
-
-    // if(!userRole)
-    // {
-    //   throw new CustomError(Enum.HTTP_CODES.FORBIDDEN, "Validation Error!", "userRole not found.");
-    // }
     
     if (body.role_name)
     {
@@ -86,7 +87,7 @@ router.put('/update', async(req, res) => {
     {
       updates.is_active = body.is_active;
     }
-    if (body.permissions && Array.isArray(body.permissions) && body.permissions.length > 0)  //Request içerisinde permissions alanı yoksa veya var ama bir array olarak tanımlı değil ise hata fırlat
+    if (body.permissions && Array.isArray(body.permissions) && body.permissions.length > 0) 
     {
       let permissions = await RolePrivileges.find({role_id: body._id});
 
@@ -118,9 +119,14 @@ router.put('/update', async(req, res) => {
 
     updates.updated_at = new Date();
 
+    //Logging
+    AuditLogs.info(req.user?.email, "Roles", "update", { _id: body._id, ...updates });
+    logger.info(req.user?.email, "Roles", "update", { _id: body._id, ...updates });
+
     await Roles.updateOne({ _id: body._id }, updates);
     res.json(Response.successResponse({ success: true }));
   } catch (err) {
+    logger.info(req.user?.email, "Roles", "update", err);
     let errorResponse = Response.errorResponse(err);
     res.status(errorResponse.code).json(errorResponse);
   }
@@ -136,8 +142,14 @@ router.delete('/delete', async(req, res) => {
 
     await Roles.deleteOne({ _id: body._id });
 
+    //Logging
+    AuditLogs.info(req.user?.email, "Roles", "delete", { _id: body._id });
+    logger.info(req.user?.email, "Roles", "delete", { _id: body._id });
+
     res.json(Response.successResponse({ success: true }));
   } catch (err) {
+    //Logging
+    logger.info(req.user?.email, "Roles", "delete", err);
     let errorResponse = Response.errorResponse(err);
     res.status(errorResponse.code).json(errorResponse);
   }

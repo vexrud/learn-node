@@ -5,6 +5,7 @@ const Response = require("../lib/Response");
 const CustomError = require("../lib/Error");
 const Enum = require("../config/Enum");
 const AuditLogs = require("../lib/AuditLogs");
+const logger = require("../lib/logger/LoggerClass");
 
 const isAuthenticated = false;
 /**
@@ -34,6 +35,7 @@ router.get('/', async (req, res, next) => {
     
     res.json(Response.successResponse(categories));
   } catch (err) {
+    logger.error(req.user?.email, "Categories", "get", err);
     let errorResponse = Response.errorResponse(err);
     res.status(errorResponse.code).json(errorResponse);
   }
@@ -56,11 +58,14 @@ router.post('/add', async (req, res) => {
 
     await category.save();
 
+    //Logging
     AuditLogs.info(req.user?.email, "Categories", "add", category);
+    logger.info(req.user?.email, "Categories", "add", category);
 
     res.json(Response.successResponse({ success: true }));
 
   } catch (err) {
+    logger.error(req.user?.email, "Categories", "add", err);
     let errorResponse = Response.errorResponse(err);
     res.status(errorResponse.code).json(errorResponse);
   }
@@ -85,10 +90,13 @@ router.put('/update', async(req, res) => {
     
     await Categories.updateOne({ _id: body._id }, updates);
 
+    //Logging
     AuditLogs.info(req.user?.email, "Categories", "update", { _id: body._id, ...updates });
+    logger.info(req.user?.email, "Categories", "update", { _id: body._id, ...updates });
 
     res.json(Response.successResponse({ success: true }));
   } catch (err) {
+    logger.error(req.user?.email, "Categories", "update", err);
     let errorResponse = Response.errorResponse(err);
     res.status(errorResponse.code).json(errorResponse);
   }
@@ -104,10 +112,13 @@ router.delete('/delete', async(req, res) => {
 
     await Categories.deleteOne({_id: body._id});
 
+    //Logging
     AuditLogs.info(req.user?.email, "Categories", "delete", { _id: body._id });
+    logger.info(req.user?.email, "Categories", "delete", { _id: body._id });
 
     res.json(Response.successResponse({ success: true }));
   } catch (err) {
+    logger.error(req.user?.email, "Categories", "delete", err);
     let errorResponse = Response.errorResponse(err);
     res.status(errorResponse.code).json(errorResponse);
   }
