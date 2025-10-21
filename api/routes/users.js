@@ -269,8 +269,8 @@ router.post('/auth', async(req, res) => {
       first_name: user.first_name,
       last_name: user.last_name
     }
+    
     res.json(Response.successResponse({ token, user: userData }));
-
   } catch (err) {
     let errorResponse = Response.errorResponse(err);
     res.status(errorResponse.code).json(errorResponse);
