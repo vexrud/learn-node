@@ -16,7 +16,7 @@ for (let route of routes){
 }
 
 
-router.get('/', function(req, res, next) {
+router.get('/', function(req, res) {
   res.render('index', { title: 'Batuhan', config })
 });
 

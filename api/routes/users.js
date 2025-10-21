@@ -12,9 +12,11 @@ const Enum = require('../config/Enum');
 const CustomError = require('../lib/Error');
 const AuditLogs = require('../lib/AuditLogs');
 const logger = require("../lib/logger/LoggerClass");
+const config = require("../config");
+const jwt = require("jwt-simple");
 
 /* GET users listing. */
-router.get('/', async(req, res, next) => {
+router.get('/', async(req, res) => {
   try{
     let users = await Users.find({});
 
@@ -232,6 +234,44 @@ router.post('/register', async(req, res) => {
 
   } catch (err) {
     logger.info(req.user?.email, "Users", "register", err);
+    let errorResponse = Response.errorResponse(err);
+    res.status(errorResponse.code).json(errorResponse);
+  }
+});
+
+router.post('/auth', async(req, res) => {
+  try {
+    let { email, password } = req.body;
+    
+    Users.validateFieldsBeforeAuth(email, password);  //Bu metot Users model içerisinde tanımlandı.
+    
+    let user = await Users.findOne({ email });
+
+    if (!user)
+    {
+      throw new CustomError(Enum.HTTP_CODES.UNAUTHORIZED, "Validation Error!", "email or password wrong");
+    }
+    
+    if(!user.validPassword(password)) //Bu metot Users model içerisinde tanımlandı.
+    {
+      throw new CustomError(Enum.HTTP_CODES.UNAUTHORIZED, "Validation Error!", "email or password wrong");
+    }
+
+    let payload = {
+      id: user._id,
+      exp: parseInt(Date.now() / 1000) * config.JWT.EXPIRE_TIME
+    };
+
+    let token = jwt.encode(payload, config.JWT.SECRET);
+
+    let userData = {
+      _id: user._id,
+      first_name: user.first_name,
+      last_name: user.last_name
+    }
+    res.json(Response.successResponse({ token, user: userData }));
+
+  } catch (err) {
     let errorResponse = Response.errorResponse(err);
     res.status(errorResponse.code).json(errorResponse);
   }

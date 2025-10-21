@@ -10,7 +10,7 @@ const AuditLogs = require('../lib/AuditLogs');
 const logger = require("../lib/logger/LoggerClass");
 
 /* GET roles listing. */
-router.get('/', async (req, res, next) => {
+router.get('/', async (req, res) => {
   try {
     let roles = await Roles.find({}); //Select query
     

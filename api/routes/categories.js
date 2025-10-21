@@ -7,7 +7,7 @@ const Enum = require("../config/Enum");
 const AuditLogs = require("../lib/AuditLogs");
 const logger = require("../lib/logger/LoggerClass");
 
-const isAuthenticated = false;
+//const isAuthenticated = false;
 /**
  * Create
  * Read
@@ -29,7 +29,7 @@ const isAuthenticated = false;
  */
 
 /* GET categories listing. */
-router.get('/', async (req, res, next) => {
+router.get('/', async (req, res) => {
   try {
     let categories = await Categories.find({}); //Select sorgusu (veritabanındaki categories tablosundan verileri çekiyor)
     
