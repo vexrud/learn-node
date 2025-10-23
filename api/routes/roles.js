@@ -8,6 +8,11 @@ const role_privileges = require("../config/role_privileges");
 const RolePrivileges = require("../db/models/RolePrivileges");
 const AuditLogs = require('../lib/AuditLogs');
 const logger = require("../lib/logger/LoggerClass");
+const auth = require("../lib/auth")();
+
+router.all("*", auth.authenticate(), (req, res, next) => {
+    next();
+});
 
 /* GET roles listing. */
 router.get('/', async (req, res) => {

@@ -6,6 +6,7 @@ const CustomError = require("../lib/Error");
 const Enum = require("../config/Enum");
 const AuditLogs = require("../lib/AuditLogs");
 const logger = require("../lib/logger/LoggerClass");
+const auth = require("../lib/auth")();
 
 //const isAuthenticated = false;
 /**
@@ -27,6 +28,10 @@ const logger = require("../lib/logger/LoggerClass");
     }
   })
  */
+
+router.all("*", auth.authenticate(), (req, res, next) => {
+    next();
+});
 
 /* GET categories listing. */
 router.get('/', async (req, res) => {
