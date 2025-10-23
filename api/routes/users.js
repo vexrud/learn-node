@@ -14,6 +14,118 @@ const AuditLogs = require('../lib/AuditLogs');
 const logger = require("../lib/logger/LoggerClass");
 const config = require("../config");
 const jwt = require("jwt-simple");
+const auth = require("../lib/auth")();
+
+
+// register ve auth endpointlerinin authenticate ile korunmaması gerekiyor. Bu yüzden yukarı alındı.
+router.post('/register', async(req, res) => {
+  try {
+    let role = await Roles.findOne({ role_name: Enum.SUPER_ADMIN });
+    let users = await Users.findOne({});
+    if(users)
+    {
+      return res.sendStatus(Enum.HTTP_CODES.NOT_FOUND);
+    }
+
+    let body = req.body;
+    let phoneNumber;
+
+    if(!body.email) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "email field must be filled.");
+    if(is.not.email(body.email)) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "email field must be an email format.");
+    if(!body.password) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "password field must be filled.");
+    if(!body.adres) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "adres field must be filled.");
+    if(!body.tc_no) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "tc_no field must be filled.");
+    if(body.password.length < Enum.PASSWORD_LENGTH){
+      throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "password length must be greater than" + Enum.PASSWORD_LENGTH);
+    }
+    if(body.phone_number)
+    {
+      phoneNumber = parsePhoneNumberFromString(body.phone_number, 'TR');
+      if(!phoneNumber || !phoneNumber.isValid()) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "phone_number field must be a phone number. (+90 0555 555 55 55)");
+    }
+    if(body.tc_no && body.tc_no.length != "11") throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "The length of the tc_no field must be 11 characters.");
+
+    let password = bcrypt.hashSync(body.password, bcrypt.genSaltSync(Enum.PASSWORD_LENGTH));
+
+    let createdUser = await Users.create({
+      email: body.email,
+      password, //key ve value aynı isimlendirme ise bu şekilde kullanılabiliyor. (let password'u kullanacak)
+      is_active: body.is_active? body.is_active : true,
+      first_name: body.first_name,
+      last_name: body.last_name,
+      phone_number: phoneNumber ? phoneNumber.number : "",
+      tc_no: body.tc_no,
+      yas: body.yas? body.yas : "",
+      adres: body.adres
+    });
+
+    if (!role)
+    {
+      role = await Roles.create({
+        role_name: Enum.SUPER_ADMIN,
+        is_active: true,
+        created_by: createdUser._id
+      });
+    }
+
+    await UserRoles.create({
+      role_id: role._id,
+      user_id: createdUser._id
+    });
+
+    //Logging
+    AuditLogs.info(req.user?.email, "Users", "register", createdUser);
+    logger.info(req.user?.email, "Users", "register", createdUser);
+    res.status(Enum.HTTP_CODES.CREATED).json(Response.successResponse({ success: true }, Enum.HTTP_CODES.CREATED));
+
+  } catch (err) {
+    logger.info(req.user?.email, "Users", "register", err);
+    let errorResponse = Response.errorResponse(err);
+    res.status(errorResponse.code).json(errorResponse);
+  }
+});
+
+router.post('/auth', async(req, res) => {
+  try {
+    let { email, password } = req.body;
+    
+    Users.validateFieldsBeforeAuth(email, password);  //Bu metot Users model içerisinde tanımlandı.
+    
+    let user = await Users.findOne({ email });
+
+    if (!user)
+    {
+      throw new CustomError(Enum.HTTP_CODES.UNAUTHORIZED, "Validation Error!", "email or password wrong");
+    }
+    
+    if(!user.validPassword(password)) //Bu metot Users model içerisinde tanımlandı.
+    {
+      throw new CustomError(Enum.HTTP_CODES.UNAUTHORIZED, "Validation Error!", "email or password wrong");
+    }
+
+    let payload = {
+      id: user._id,
+      exp: parseInt(Date.now() / 1000) * config.JWT.EXPIRE_TIME
+    };
+
+    let token = jwt.encode(payload, config.JWT.SECRET);
+
+    let userData = {
+      _id: user._id,
+      first_name: user.first_name,
+      last_name: user.last_name
+    }
+    res.json(Response.successResponse({ token, user: userData }));
+
+  } catch (err) {
+    let errorResponse = Response.errorResponse(err);
+    res.status(errorResponse.code).json(errorResponse);
+  }
+});
+
+router.all("*", auth.authenticate(), (req, res, next) => {
+    next();
+});
 
 /* GET users listing. */
 router.get('/', async(req, res) => {
@@ -172,108 +284,4 @@ router.delete('/delete', async(req, res) => {
   }
 });
 
-router.post('/register', async(req, res) => {
-  try {
-    let role = await Roles.findOne({ role_name: Enum.SUPER_ADMIN });
-    let users = await Users.findOne({});
-    if(users)
-    {
-      return res.sendStatus(Enum.HTTP_CODES.NOT_FOUND);
-    }
-
-    let body = req.body;
-    let phoneNumber;
-
-    if(!body.email) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "email field must be filled.");
-    if(is.not.email(body.email)) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "email field must be an email format.");
-    if(!body.password) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "password field must be filled.");
-    if(!body.adres) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "adres field must be filled.");
-    if(!body.tc_no) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "tc_no field must be filled.");
-    if(body.password.length < Enum.PASSWORD_LENGTH){
-      throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "password length must be greater than" + Enum.PASSWORD_LENGTH);
-    }
-    if(body.phone_number)
-    {
-      phoneNumber = parsePhoneNumberFromString(body.phone_number, 'TR');
-      if(!phoneNumber || !phoneNumber.isValid()) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "phone_number field must be a phone number. (+90 0555 555 55 55)");
-    }
-    if(body.tc_no && body.tc_no.length != "11") throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "The length of the tc_no field must be 11 characters.");
-
-    let password = bcrypt.hashSync(body.password, bcrypt.genSaltSync(Enum.PASSWORD_LENGTH));
-
-    let createdUser = await Users.create({
-      email: body.email,
-      password, //key ve value aynı isimlendirme ise bu şekilde kullanılabiliyor. (let password'u kullanacak)
-      is_active: body.is_active? body.is_active : true,
-      first_name: body.first_name,
-      last_name: body.last_name,
-      phone_number: phoneNumber ? phoneNumber.number : "",
-      tc_no: body.tc_no,
-      yas: body.yas? body.yas : "",
-      adres: body.adres
-    });
-
-    if (!role)
-    {
-      role = await Roles.create({
-        role_name: Enum.SUPER_ADMIN,
-        is_active: true,
-        created_by: createdUser._id
-      });
-    }
-
-    await UserRoles.create({
-      role_id: role._id,
-      user_id: createdUser._id
-    });
-
-    //Logging
-    AuditLogs.info(req.user?.email, "Users", "register", createdUser);
-    logger.info(req.user?.email, "Users", "register", createdUser);
-    res.status(Enum.HTTP_CODES.CREATED).json(Response.successResponse({ success: true }, Enum.HTTP_CODES.CREATED));
-
-  } catch (err) {
-    logger.info(req.user?.email, "Users", "register", err);
-    let errorResponse = Response.errorResponse(err);
-    res.status(errorResponse.code).json(errorResponse);
-  }
-});
-
-router.post('/auth', async(req, res) => {
-  try {
-    let { email, password } = req.body;
-    
-    Users.validateFieldsBeforeAuth(email, password);  //Bu metot Users model içerisinde tanımlandı.
-    
-    let user = await Users.findOne({ email });
-
-    if (!user)
-    {
-      throw new CustomError(Enum.HTTP_CODES.UNAUTHORIZED, "Validation Error!", "email or password wrong");
-    }
-    
-    if(!user.validPassword(password)) //Bu metot Users model içerisinde tanımlandı.
-    {
-      throw new CustomError(Enum.HTTP_CODES.UNAUTHORIZED, "Validation Error!", "email or password wrong");
-    }
-
-    let payload = {
-      id: user._id,
-      exp: parseInt(Date.now() / 1000) * config.JWT.EXPIRE_TIME
-    };
-
-    let token = jwt.encode(payload, config.JWT.SECRET);
-
-    let userData = {
-      _id: user._id,
-      first_name: user.first_name,
-      last_name: user.last_name
-    }
-    res.json(Response.successResponse({ token, user: userData }));
-
-  } catch (err) {
-    let errorResponse = Response.errorResponse(err);
-    res.status(errorResponse.code).json(errorResponse);
-  }
-});
 module.exports = router;

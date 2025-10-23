@@ -3,7 +3,11 @@ const router = express.Router();
 const moment = require("moment");
 const AuditLogs = require("../db/models/AuditLogs");
 const Response = require("../lib/Response");
+const auth = require("../lib/auth")();
 
+router.all("*", auth.authenticate(), (req, res, next) => {
+    next();
+});
 
 //req.body üzerinden veri alabilmek post metotu ile daha kolay olduğu için get => post oldu
 router.post("/", async(req, res) => {   

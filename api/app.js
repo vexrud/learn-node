@@ -24,10 +24,10 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Bu alanın Middleware olduğunu ispatlamak için kullanıldı.
-app.use((res, req, next) => {
-  console.log("Ben app.js üzerinde tanımlanan bir middleware'im.");
-  next();
-});
+// app.use((res, req, next) => {
+//   console.log("Ben app.js üzerinde tanımlanan bir middleware'im.");
+//   next();
+// });
 
 // routings
 app.use('/api', require('./routes/index'));  //http://localhost:3000
