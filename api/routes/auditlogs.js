@@ -10,7 +10,7 @@ router.all("*", auth.authenticate(), (req, res, next) => {
 });
 
 //req.body üzerinden veri alabilmek post metotu ile daha kolay olduğu için get => post oldu
-router.post("/", async(req, res) => {   
+router.post("/", auth.checkRoles("auditlogs_view"), async(req, res) => {   
     try {
         let body = req.body;
         let query = {};

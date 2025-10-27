@@ -13,7 +13,7 @@ const CustomError = require('../lib/Error');
 const AuditLogs = require('../lib/AuditLogs');
 const logger = require("../lib/logger/LoggerClass");
 const config = require("../config");
-const jwt = require("jwt-simple");
+const jwt = require("jsonwebtoken");
 const auth = require("../lib/auth")();
 
 
@@ -103,19 +103,20 @@ router.post('/auth', async(req, res) => {
       throw new CustomError(Enum.HTTP_CODES.UNAUTHORIZED, "Validation Error!", "email or password wrong");
     }
 
-    let payload = {
-      id: user._id,
-      exp: parseInt(Date.now() / 1000) * config.JWT.EXPIRE_TIME
-    };
+    const token = jwt.sign(
+      { id: user._id },
+      config.JWT.SECRET,
+      { expiresIn: config.JWT.EXPIRE_TIME } // saniye veya '1h' olarak çalışır
+    );
 
-    let token = jwt.encode(payload, config.JWT.SECRET);
-
-    let userData = {
-      _id: user._id,
-      first_name: user.first_name,
-      last_name: user.last_name
-    }
-    res.json(Response.successResponse({ token, user: userData }));
+    res.json(Response.successResponse({
+      token,
+      user: {
+        _id: user._id,
+        first_name: user.first_name,
+        last_name: user.last_name
+      }
+    }));
 
   } catch (err) {
     let errorResponse = Response.errorResponse(err);
@@ -128,7 +129,7 @@ router.all("*", auth.authenticate(), (req, res, next) => {
 });
 
 /* GET users listing. */
-router.get('/', async(req, res) => {
+router.get('/', auth.checkRoles("user_view"), async(req, res) => {
   try{
     let users = await Users.find({});
 
@@ -140,7 +141,7 @@ router.get('/', async(req, res) => {
   }
 });
 
-router.post('/add', async(req, res) => {
+router.post('/add', auth.checkRoles("user_add"), async(req, res) => {
   try {
     let body = req.body;
     let phoneNumber;
@@ -198,7 +199,7 @@ router.post('/add', async(req, res) => {
   }
 });
 
-router.put('/update', async(req, res) => {
+router.put('/update', auth.checkRoles("user_update"), async(req, res) => {
   try {
     let body = req.body;
     let phoneNumber;
@@ -262,7 +263,7 @@ router.put('/update', async(req, res) => {
   }
 });
 
-router.delete('/delete', async(req, res) => {
+router.delete('/delete', auth.checkRoles("user_delete"), async(req, res) => {
   try {
     let body = req.body;
 
