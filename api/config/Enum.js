@@ -49,6 +49,7 @@ module.exports = {
     },
 
     PASSWORD_LENGTH: 8,
+    PHONE_NUMBER: "(+90 0555 555 55 55)",
     SUPER_ADMIN: "SUPER_ADMIN",
 
     LOGLEVELS:
