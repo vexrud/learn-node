@@ -7,6 +7,8 @@ const Enum = require("../config/Enum");
 const AuditLogs = require("../lib/AuditLogs");
 const logger = require("../lib/logger/LoggerClass");
 const auth = require("../lib/auth")();
+const config = require("../config");
+const i18n = new (require("../lib/i18n"))(config.DEFAULT_LANG);
 
 //const isAuthenticated = false;
 /**
@@ -52,7 +54,7 @@ router.post('/add', auth.checkRoles("category_add"), async (req, res) => {
   try {
     if (!body.name)
     {
-      throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "Name field must be filled.");
+      throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.lang), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["name"]));  //name filled must be filled.
     }
 
     let category = new Categories({
@@ -82,7 +84,7 @@ router.put('/update', auth.checkRoles("category_update"), async(req, res) => {
     let updates = {};
 
     if (!body._id){
-      throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "_id field must be filled.");
+      throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["_id"]));
     }
     if (body.name){
       updates.name = body.name;
@@ -112,7 +114,7 @@ router.delete('/delete', auth.checkRoles("category_delete"), async(req, res) => 
 
   try {
     if (!body._id){
-      throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "_id field must be filled.");
+      throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["_id"]));
     }
 
     await Categories.deleteOne({_id: body._id});

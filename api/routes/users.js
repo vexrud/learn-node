@@ -15,6 +15,7 @@ const logger = require("../lib/logger/LoggerClass");
 const config = require("../config");
 const jwt = require("jsonwebtoken");
 const auth = require("../lib/auth")();
+const i18n = new (require("../lib/i18n"))(config.DEFAULT_LANG);
 
 
 // register ve auth endpointlerinin authenticate ile korunmaması gerekiyor. Bu yüzden yukarı alındı.
@@ -30,20 +31,20 @@ router.post('/register', async(req, res) => {
     let body = req.body;
     let phoneNumber;
 
-    if(!body.email) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "email field must be filled.");
-    if(is.not.email(body.email)) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "email field must be an email format.");
-    if(!body.password) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "password field must be filled.");
-    if(!body.adres) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "adres field must be filled.");
-    if(!body.tc_no) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "tc_no field must be filled.");
+    if(!body.email) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["email"]));
+    if(is.not.email(body.email)) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_EMAIL_FORMAT", req.user?.language, ["email"]));
+    if(!body.password) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["password"]));
+    if(!body.adres) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["adres"]));
+    if(!body.tc_no) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["tc_no"]));
     if(body.password.length < Enum.PASSWORD_LENGTH){
-      throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "password length must be greater than" + Enum.PASSWORD_LENGTH);
+      throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.INVALID_PASSWORD", req.user?.language, ["password"]));
     }
     if(body.phone_number)
     {
       phoneNumber = parsePhoneNumberFromString(body.phone_number, 'TR');
-      if(!phoneNumber || !phoneNumber.isValid()) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "phone_number field must be a phone number. (+90 0555 555 55 55)");
+      if(!phoneNumber || !phoneNumber.isValid()) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.INVALID_PHONE_NUMBER", req.user?.language, ["phone_number"]));
     }
-    if(body.tc_no && body.tc_no.length != "11") throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "The length of the tc_no field must be 11 characters.");
+    if(body.tc_no && body.tc_no.length != "11") throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.INVALID_FIELD_CHARACTERS", req.user?.language, ["tc_no", "11"]));
 
     let password = bcrypt.hashSync(body.password, bcrypt.genSaltSync(Enum.PASSWORD_LENGTH));
 
@@ -95,12 +96,12 @@ router.post('/auth', async(req, res) => {
 
     if (!user)
     {
-      throw new CustomError(Enum.HTTP_CODES.UNAUTHORIZED, "Validation Error!", "email or password wrong");
+      throw new CustomError(Enum.HTTP_CODES.UNAUTHORIZED, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.WRONG_EMAIL_OR_PASSWORD", req.user?.language));
     }
     
     if(!user.validPassword(password)) //Bu metot Users model içerisinde tanımlandı.
     {
-      throw new CustomError(Enum.HTTP_CODES.UNAUTHORIZED, "Validation Error!", "email or password wrong");
+      throw new CustomError(Enum.HTTP_CODES.UNAUTHORIZED, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.WRONG_EMAIL_OR_PASSWORD", req.user?.language));
     }
 
     const token = jwt.sign(
@@ -146,24 +147,24 @@ router.post('/add', auth.checkRoles("user_add"), async(req, res) => {
     let body = req.body;
     let phoneNumber;
 
-    if(!body.email) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "email field must be filled.");
-    if(is.not.email(body.email)) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "email field must be an email format.");
-    if(!body.password) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "password field must be filled.");
-    if(!body.adres) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "adres field must be filled.");
-    if(!body.tc_no) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "tc_no field must be filled.");
+    if(!body.email) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["email"]));
+    if(is.not.email(body.email)) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_EMAIL_FORMAT", req.user?.language, ["email"]));
+    if(!body.password) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["password"]));
+    if(!body.adres) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["adres"]));
+    if(!body.tc_no) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["tc_no"]));
     if(body.password.length < Enum.PASSWORD_LENGTH){
-      throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "password length must be greater than" + Enum.PASSWORD_LENGTH);
+      throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.INVALID_PASSWORD", req.user?.language, ["password"]));
     }
     if(body.phone_number)
     {
       phoneNumber = parsePhoneNumberFromString(body.phone_number, 'TR');
-      if(!phoneNumber || !phoneNumber.isValid()) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "phone_number field must be a phone number. (+90 0555 555 55 55)");
+      if(!phoneNumber || !phoneNumber.isValid()) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.INVALID_PHONE_NUMBER", req.user?.language, ["phone_number"]));
     }
-    if(body.tc_no && body.tc_no.length != "11") throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "The length of the tc_no field must be 11 characters.");
-    if(!body.roles || !Array.isArray(body.roles) || body.roles.length == 0) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "roles field must be an array.");
+    if(body.tc_no && body.tc_no.length != "11") throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.INVALID_FIELD_CHARACTERS", req.user?.language, ["tc_no", "11"]));
+    if(!body.roles || !Array.isArray(body.roles) || body.roles.length == 0) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["roles"]));
 
     let roles = await Roles.find({ _id: {$in: body.roles} });
-    if(roles.length == 0) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "roles field must be an array.");
+    if(roles.length == 0) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_ARRAY", req.user?.language, ["roles"]));
 
     let password = bcrypt.hashSync(body.password, bcrypt.genSaltSync(Enum.PASSWORD_LENGTH));
 
@@ -205,7 +206,7 @@ router.put('/update', auth.checkRoles("user_update"), async(req, res) => {
     let phoneNumber;
     let updates = {};
 
-    if(!body._id) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "_id field must be filled.");
+    if(!body._id) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["_id"]));
     if(body.password && body.password.length >= Enum.PASSWORD_LENGTH )
     {
       updates.password = bcrypt.hashSync(body.password, bcrypt.genSaltSync(8), null);
@@ -220,7 +221,7 @@ router.put('/update', auth.checkRoles("user_update"), async(req, res) => {
     if(body.phone_number)
     {
       phoneNumber = parsePhoneNumberFromString(body.phone_number, 'TR');
-      if(!phoneNumber || !phoneNumber.isValid()) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "phone_number field must be a phone number. (+90 0555 555 55 55)");
+      if(!phoneNumber || !phoneNumber.isValid()) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.INVALID_PHONE_NUMBER", req.user?.language, ["phone_number"]));
       updates.phone_number = phoneNumber.number.toString();
     }
     if(Array.isArray(body.roles) && body.roles.length > 0) 
@@ -267,7 +268,7 @@ router.delete('/delete', auth.checkRoles("user_delete"), async(req, res) => {
   try {
     let body = req.body;
 
-    if(!body._id) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "Validation Error!", "_id field must be filled.");
+    if(!body._id) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["_id"]));
 
     await Users.deleteOne({ _id: body._id });
 
