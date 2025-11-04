@@ -8,13 +8,13 @@ class I18n {
 
     translate(text, lang = this.lang, params = []){
         //arr = array
-        let arr = text.split(".");  // COMMON.VALIDATION_ERROR_TITLE => ['COMMON','VALIDATION_ERROR_TITLE']
+        let arr = text.split(".");  // COMMON.VALIDATION_ERROR => ['COMMON','VALIDATION_ERROR']
         //val = value
         let val = i18n[lang][arr[0]]; // i18n["EN"]["COMMON"];
 
         for(let i=1; i<arr.length; i++)
         {
-            val = val[arr[i]]; // i=1 için; val["VALIDATION_ERROR_TITLE"]
+            val = val[arr[i]]; // i=1 için; vsal["VALIDATION_ERROR"]
         }
         
         val = val + "";

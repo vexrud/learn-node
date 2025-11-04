@@ -12,7 +12,7 @@ const schema = mongoose.Schema({
     is_active: { type: Boolean, default: true },
     first_name: String,
     last_name: String,
-    tc_no: {
+    identity_number: {
         type: String,
         required: true,
         unique: true,
@@ -21,8 +21,8 @@ const schema = mongoose.Schema({
         //     message: 'Geçersiz T.C. kimlik numarası',
         // }
     },
-    yas: Number,
-    adres: { type: String, required: true },
+    age: Number,
+    address: { type: String, required: true },
     phone_number: String
 }, {
     versionKey: false,

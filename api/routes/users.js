@@ -17,7 +17,6 @@ const jwt = require("jsonwebtoken");
 const auth = require("../lib/auth")();
 const i18n = new (require("../lib/i18n"))(config.DEFAULT_LANG);
 
-
 // register ve auth endpointlerinin authenticate ile korunmaması gerekiyor. Bu yüzden yukarı alındı.
 router.post('/register', async(req, res) => {
   try {
@@ -34,8 +33,8 @@ router.post('/register', async(req, res) => {
     if(!body.email) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["email"]));
     if(is.not.email(body.email)) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_EMAIL_FORMAT", req.user?.language, ["email"]));
     if(!body.password) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["password"]));
-    if(!body.adres) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["adres"]));
-    if(!body.tc_no) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["tc_no"]));
+    if(!body.address) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["address"]));
+    if(!body.identity_number) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["identity_number"]));
     if(body.password.length < Enum.PASSWORD_LENGTH){
       throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.INVALID_PASSWORD", req.user?.language, ["password"]));
     }
@@ -44,7 +43,7 @@ router.post('/register', async(req, res) => {
       phoneNumber = parsePhoneNumberFromString(body.phone_number, 'TR');
       if(!phoneNumber || !phoneNumber.isValid()) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.INVALID_PHONE_NUMBER", req.user?.language, ["phone_number"]));
     }
-    if(body.tc_no && body.tc_no.length != "11") throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.INVALID_FIELD_CHARACTERS", req.user?.language, ["tc_no", "11"]));
+    if(body.identity_number && body.identity_number.length != "11") throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.INVALID_FIELD_CHARACTERS", req.user?.language, ["identity_number", "11"]));
 
     let password = bcrypt.hashSync(body.password, bcrypt.genSaltSync(Enum.PASSWORD_LENGTH));
 
@@ -55,9 +54,9 @@ router.post('/register', async(req, res) => {
       first_name: body.first_name,
       last_name: body.last_name,
       phone_number: phoneNumber ? phoneNumber.number : "",
-      tc_no: body.tc_no,
-      yas: body.yas? body.yas : "",
-      adres: body.adres
+      identity_number: body.identity_number,
+      age: body.age? body.age : "",
+      address: body.address
     });
 
     if (!role)
@@ -129,7 +128,6 @@ router.all("*", auth.authenticate(), (req, res, next) => {
     next();
 });
 
-/* GET users listing. */
 router.get('/', auth.checkRoles("user_view"), async(req, res) => {
   try{
     let users = await Users.find({});
@@ -150,8 +148,8 @@ router.post('/add', auth.checkRoles("user_add"), async(req, res) => {
     if(!body.email) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["email"]));
     if(is.not.email(body.email)) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_EMAIL_FORMAT", req.user?.language, ["email"]));
     if(!body.password) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["password"]));
-    if(!body.adres) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["adres"]));
-    if(!body.tc_no) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["tc_no"]));
+    if(!body.address) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["address"]));
+    if(!body.identity_number) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["identity_number"]));
     if(body.password.length < Enum.PASSWORD_LENGTH){
       throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.INVALID_PASSWORD", req.user?.language, ["password"]));
     }
@@ -160,7 +158,7 @@ router.post('/add', auth.checkRoles("user_add"), async(req, res) => {
       phoneNumber = parsePhoneNumberFromString(body.phone_number, 'TR');
       if(!phoneNumber || !phoneNumber.isValid()) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.INVALID_PHONE_NUMBER", req.user?.language, ["phone_number"]));
     }
-    if(body.tc_no && body.tc_no.length != "11") throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.INVALID_FIELD_CHARACTERS", req.user?.language, ["tc_no", "11"]));
+    if(body.identity_number && body.identity_number.length != "11") throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.INVALID_FIELD_CHARACTERS", req.user?.language, ["identity_number", "11"]));
     if(!body.roles || !Array.isArray(body.roles) || body.roles.length == 0) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["roles"]));
 
     let roles = await Roles.find({ _id: {$in: body.roles} });
@@ -175,9 +173,9 @@ router.post('/add', auth.checkRoles("user_add"), async(req, res) => {
       first_name: body.first_name,
       last_name: body.last_name,
       phone_number: phoneNumber ? phoneNumber.number : "",
-      tc_no: body.tc_no,
-      yas: body.yas? body.yas : "",
-      adres: body.adres
+      identity_number: body.identity_number,
+      age: body.age? body.age : "",
+      address: body.address
     });
 
     for (let i=0;i<roles.length;i++)
@@ -215,9 +213,9 @@ router.put('/update', auth.checkRoles("user_update"), async(req, res) => {
     if(body.last_name) updates.last_name = body.last_name;
     if(body.email && is.email(body.email)) updates.email = body.email;
     if(typeof(body.is_active) === 'boolean') updates.is_active = body.is_active;
-    if(body.tc_no && body.tc_no.length == "11") updates.tc_no = body.tc_no;
-    if(body.yas) updates.yas = body.yas;
-    if(body.adres) updates.adres = body.adres;
+    if(body.identity_number && body.identity_number.length == "11") updates.identity_number = body.identity_number;
+    if(body.age) updates.age = body.age;
+    if(body.address) updates.address = body.address;
     if(body.phone_number)
     {
       phoneNumber = parsePhoneNumberFromString(body.phone_number, 'TR');
