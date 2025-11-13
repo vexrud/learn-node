@@ -44,6 +44,12 @@ module.exports = {
             description: "This authority allows any user to delete a record in the database."
         },
         {
+            key: "user_export",
+            name: "User Export",
+            group: "USERS",
+            description: "This authorization allows it to be exported as an excel file."
+        },      
+        {
             key: "role_view",
             name: "Role View",
             group: "ROLES",
@@ -68,6 +74,12 @@ module.exports = {
             description: "This authority allows any role to delete a record in the database."
         },
         {
+            key: "role_export",
+            name: "Role Export",
+            group: "ROLES",
+            description: "This authorization allows it to be exported as an excel file."
+        },        
+        {
             key: "category_view",
             name: "Category View",
             group: "CATEGORIES",
@@ -91,6 +103,12 @@ module.exports = {
             group: "CATEGORIES",
             description: "This authority allows any category to delete a record in the database."
         },
+        {
+            key: "category_export",
+            name: "Category Export",
+            group: "CATEGORIES",
+            description: "This authorization allows it to be exported as an excel file."
+        },        
         {
             key: "auditlogs_view",
             name: "Auditlogs View",
