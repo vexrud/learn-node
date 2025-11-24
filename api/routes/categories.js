@@ -16,7 +16,11 @@ const multer = require("multer");   //request ile gönderilen dosyayı import ed
 const path = require('path');
 const Import = new (require("../lib/Import"))();
 
-
+/**
+ * ?multerStore = excel file import edilirken geçici olarak diske yazacak ve datayı içeri aktaracak.
+ * ?tmp içerisine dosyayı kaydeder.
+ * ?npm install multer import edildi.
+ */
 let multerStorage = multer.diskStorage({
     destination: (req, file, next) => {
         next(null, config.FILE_UPLOAD_PATH)
@@ -38,6 +42,7 @@ const upload = multer({storage: multerStorage}).single("pb_file");
  */
 
 /**
+ * ?Bu örnek bir endpoint tanımlamasıdır. Authenticate yapısı kurulmadan önce örnek olması amacıyla yazılmıştı.
  * simple authentication demo (pseudo code)
   router.all("*", (req, res, next) => {
     if (isAuthenticated){
@@ -49,6 +54,10 @@ const upload = multer({storage: multerStorage}).single("pb_file");
   })
  */
 
+/**
+ * ?User Authenticate olmadan endpointleri kullanamaz.
+ * !Tüm endpointleri kapsaması için en üstte tanımlanır.
+ */
 router.all("*", auth.authenticate(), (req, res, next) => {
     next();
 });
@@ -152,6 +161,10 @@ router.delete('/delete', auth.checkRoles("category_delete"), async(req, res) => 
   }
 })
 
+/**
+ * ?Categories tablosundaki kayıtlar excel file olarak export edilmek istenirse bu endpoint kullanılır.
+ * !User Authenticate olmalı ve category_export rolüne sahip kullanıcılar excel dosyası export edebilir.
+ */
 router.post("/export", auth.checkRoles("category_export"), async(req, res) => {
   try {
     let categories = await Categories.find({});
@@ -196,16 +209,23 @@ router.post("/export", auth.checkRoles("category_export"), async(req, res) => {
   }
 })
 
+/**
+ * ?Excel dosyasından içeriye Category aktarılması istenirse bu endpoint kullanılacaktır.
+ * !User Authenticate olmalı ve category_add rolüne sahip olmalıdır.
+ */
 router.post("/import", auth.checkRoles("category_add"), upload, async (req, res) => {
   try {
     
     let file = req.file;
-    let body = req.body;
+    //let body = req.body; //kullanılmadı.
 
     let rows = Import.fromExcel(file.path);
 
     for(let i=1; i<rows.length; i++)
     {
+      /**
+       * ?Excel file başlıkları aşağıdaki gibi olmalıdır.
+       */
       let [name, is_active, user, created_at, updated_at] = rows[i];
 
       if (name){
