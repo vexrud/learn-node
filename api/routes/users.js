@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const bcrypt = require('bcrypt-nodejs');
-const is = require('is_js');
+const validator = require('validator');
 const { parsePhoneNumberFromString } = require('libphonenumber-js');
 
 const Users = require('../db/models/Users');
@@ -31,7 +31,7 @@ router.post('/register', async(req, res) => {
     let phoneNumber;
 
     if(!body.email) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["email"]));
-    if(is.not.email(body.email)) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_EMAIL_FORMAT", req.user?.language, ["email"]));
+    if(!validator.isEmail(body.email)) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_EMAIL_FORMAT", req.user?.language, ["email"]));
     if(!body.password) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["password"]));
     if(!body.address) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["address"]));
     if(!body.identity_number) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["identity_number"]));
@@ -146,7 +146,7 @@ router.post('/add', auth.checkRoles("user_add"), async(req, res) => {
     let phoneNumber;
 
     if(!body.email) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["email"]));
-    if(is.not.email(body.email)) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_EMAIL_FORMAT", req.user?.language, ["email"]));
+    if(!validator.isEmail(body.email)) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_EMAIL_FORMAT", req.user?.language, ["email"]));
     if(!body.password) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["password"]));
     if(!body.address) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["address"]));
     if(!body.identity_number) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user?.language, ["identity_number"]));
@@ -211,7 +211,7 @@ router.put('/update', auth.checkRoles("user_update"), async(req, res) => {
     }
     if(body.first_name) updates.first_name = body.first_name;
     if(body.last_name) updates.last_name = body.last_name;
-    if(body.email && is.email(body.email)) updates.email = body.email;
+    if(body.email && validator.isEmail(body.email)) updates.email = body.email;
     if(typeof(body.is_active) === 'boolean') updates.is_active = body.is_active;
     if(body.identity_number && body.identity_number.length == "11") updates.identity_number = body.identity_number;
     if(body.age) updates.age = body.age;
