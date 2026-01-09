@@ -19,8 +19,14 @@ router.all("*", auth.authenticate(), (req, res, next) => {
 /* GET roles listing. */
 router.get('/', auth.checkRoles("role_view"), async (req, res) => {
   try {
-    let roles = await Roles.find({}); //Select query
+    let roles = await Roles.find({}).lean(); //Select query
     
+    for (let i=0;i<roles.length;i++)
+    {
+      let permissions = await RolePrivileges.find({role_id: roles[i]._id});
+      roles[i].permissons = permissions;
+    }
+
     res.json(Response.successResponse(roles));
   } catch (err) {
     logger.error(req.user?.email, "Roles", "get", err);
