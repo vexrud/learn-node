@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const { PASS_LENGTH, HTTP_CODES } = require("../../config/Enum");
-const is_js = require("is_js");
+const validator = require("validator");
 const CustomError = require("../../lib/Error");
 const bcrypt = require("bcrypt-nodejs");
 //const tckimlik = require('tckimlik');
@@ -39,7 +39,7 @@ class Users extends mongoose.Model {
     }
 
     static validateFieldsBeforeAuth(email, password){
-        if (typeof password !== "string" || password.length < PASS_LENGTH || is_js.not.email(email))
+        if (typeof password !== "string" || password.length < PASS_LENGTH || !validator.isEmail(email))
         {
             throw new CustomError(HTTP_CODES.UNAUTHORIZED, "Validation Error!", "email or password wrong");
         }
