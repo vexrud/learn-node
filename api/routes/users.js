@@ -16,6 +16,21 @@ const config = require("../config");
 const jwt = require("jsonwebtoken");
 const auth = require("../lib/auth")();
 const i18n = new (require("../lib/i18n"))(config.DEFAULT_LANG);
+const {rateLimit} = require("express-rate-limit");
+const RateLimitMongo = require("rate-limit-mongo");
+
+const limiter = rateLimit({
+	windowMs: 15 * 60 * 1000, // 15 minutes
+	limit: 5, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+	//standardHeaders: 'draft-8', // draft-6: `RateLimit-*` headers; draft-7 & draft-8: combined `RateLimit` header
+	legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+	ipv6Subnet: 56, // Set to 60 or 64 to be less aggressive, or 52 or 48 to be more aggressive
+	store: new RateLimitMongo({
+    uri: config.CONNECTION_STRING,
+    collectionName: "rateLimits",
+    expireTimeMs: 15 * 60 * 1000  //15 minutes
+  }) , // Redis, Memcached, etc. See below.
+});
 
 // register ve auth endpointlerinin authenticate ile korunmaması gerekiyor. Bu yüzden yukarı alındı.
 router.post('/register', async(req, res) => {
@@ -85,7 +100,7 @@ router.post('/register', async(req, res) => {
   }
 });
 
-router.post('/auth', async(req, res) => {
+router.post('/auth', limiter, async(req, res) => {
   try {
     let { email, password } = req.body;
     
@@ -228,6 +243,12 @@ router.put('/update', auth.checkRoles("user_update"), async(req, res) => {
       if(!phoneNumber || !phoneNumber.isValid()) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR", req.user?.language), i18n.translate("COMMON.INVALID_PHONE_NUMBER", req.user?.language, ["phone_number"]));
       updates.phone_number = phoneNumber.number.toString();
     }
+
+    if(body._id == req.user.id){
+      //throw new CustomError(Enum.HTTP_CODES.FORBIDDEN, i18n.translate("COMMON.NEED_PERMISSION", req.user?.language), i18n.translate("COMMON.NEED_PERMISSION", req.user?.language));
+      body.roles = null;
+    }
+
     if(Array.isArray(body.roles) && body.roles.length > 0) 
     {
       let userRoles = await UserRoles.find({ user_id: body._id });
